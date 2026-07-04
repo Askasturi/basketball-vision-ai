@@ -24,7 +24,13 @@ class BaseDetector(ABC):
         """Load model weights and initialize inference resources."""
 
     @abstractmethod
-    def predict(self, image) -> DetectionResult:
+    def predict(
+        self,
+        image,
+        *,
+        frame_index: int = 0,
+        timestamp: float = 0.0,
+    ) -> DetectionResult:
         """Run inference on a single image."""
 
     @abstractmethod
