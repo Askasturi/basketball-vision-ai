@@ -11,6 +11,7 @@ class BaseDetector(ABC):
     """Abstract interface for all detector implementations."""
 
     def __init__(self) -> None:
+        """Initialize the detector."""
         self._loaded = False
 
     @property
@@ -28,15 +29,17 @@ class BaseDetector(ABC):
 
     @abstractmethod
     def warmup(self) -> None:
-        """Warm up the detector for consistent inference performance."""
+        """Warm up the detector."""
 
     @abstractmethod
     def close(self) -> None:
-        """Release all detector resources."""
+        """Release detector resources."""
 
     def __enter__(self):
+        """Enter the runtime context."""
         self.load_model()
         return self
 
-    def __exit__(self, exc_type, exc, traceback):
+    def __exit__(self, exc_type, exc_value, traceback):
+        """Exit the runtime context."""
         self.close()
