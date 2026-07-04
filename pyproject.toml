@@ -8,6 +8,7 @@ version = "0.1.0"
 description = "Production-quality basketball computer vision platform."
 readme = "README.md"
 requires-python = ">=3.12"
+
 authors = [
     { name = "Arjun Kasturi" }
 ]
@@ -20,7 +21,7 @@ dependencies = [
 ]
 
 [tool.setuptools]
-package-dir = {"" = "src"}
+package-dir = { "" = "src" }
 
 [tool.setuptools.packages.find]
 where = ["src"]
@@ -44,3 +45,15 @@ select = [
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["src"]
+
+addopts = [
+    "-ra",
+]
+
+markers = [
+    "integration: marks tests requiring external models or end-to-end pipelines",
+]
+
+filterwarnings = [
+    "ignore::DeprecationWarning",
+]

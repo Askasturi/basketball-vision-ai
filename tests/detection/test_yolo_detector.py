@@ -71,12 +71,7 @@ class FakeYOLO:
 
     def predict(self, source, **kwargs):
         """Fake prediction."""
-        self.predict_calls.append(
-            {
-                "source": source,
-                "kwargs": kwargs,
-            }
-        )
+        self.predict_calls.append({"source": source, "kwargs": kwargs})
         return [FakeResults()]
 
 
@@ -85,12 +80,7 @@ class EmptyYOLO(FakeYOLO):
 
     def predict(self, source, **kwargs):
         """Fake empty prediction."""
-        self.predict_calls.append(
-            {
-                "source": source,
-                "kwargs": kwargs,
-            }
-        )
+        self.predict_calls.append({"source": source, "kwargs": kwargs})
         return []
 
 
@@ -123,7 +113,6 @@ def image() -> np.ndarray:
 
 def test_initial_state() -> None:
     """Detector starts unloaded."""
-
     detector = YOLODetector(YOLODetectorConfig())
 
     assert detector.is_loaded is False
@@ -133,7 +122,6 @@ def test_initial_state() -> None:
 
 def test_model_property_raises_before_load() -> None:
     """Accessing model before loading raises."""
-
     detector = YOLODetector(YOLODetectorConfig())
 
     with pytest.raises(ModelNotLoadedError):
@@ -142,7 +130,6 @@ def test_model_property_raises_before_load() -> None:
 
 def test_load_model(monkeypatch: pytest.MonkeyPatch) -> None:
     """Load model initializes YOLO backend."""
-
     monkeypatch.setattr(yolo_detector_module, "YOLO", FakeYOLO)
 
     detector = YOLODetector(YOLODetectorConfig(model_path="custom.pt"))
@@ -154,7 +141,6 @@ def test_load_model(monkeypatch: pytest.MonkeyPatch) -> None:
 
 def test_load_model_is_idempotent(monkeypatch: pytest.MonkeyPatch) -> None:
     """Calling load_model twice should not reload."""
-
     monkeypatch.setattr(yolo_detector_module, "YOLO", FakeYOLO)
 
     detector = YOLODetector(YOLODetectorConfig())
@@ -166,7 +152,6 @@ def test_load_model_is_idempotent(monkeypatch: pytest.MonkeyPatch) -> None:
 
 def test_load_model_failure_raises(monkeypatch: pytest.MonkeyPatch) -> None:
     """Model construction failure raises ModelLoadError."""
-
     monkeypatch.setattr(yolo_detector_module, "YOLO", LoadFailingYOLO)
 
     detector = YOLODetector(YOLODetectorConfig(model_path="bad.pt"))
@@ -179,7 +164,6 @@ def test_load_model_failure_raises(monkeypatch: pytest.MonkeyPatch) -> None:
 
 def test_warmup_requires_loaded_model() -> None:
     """Warmup before loading raises."""
-
     detector = YOLODetector(YOLODetectorConfig())
 
     with pytest.raises(ModelNotLoadedError):
@@ -188,7 +172,6 @@ def test_warmup_requires_loaded_model() -> None:
 
 def test_warmup_runs_prediction(monkeypatch: pytest.MonkeyPatch) -> None:
     """Warmup runs one dummy prediction."""
-
     monkeypatch.setattr(yolo_detector_module, "YOLO", FakeYOLO)
 
     detector = YOLODetector(YOLODetectorConfig(image_size=32))
@@ -202,7 +185,6 @@ def test_warmup_runs_prediction(monkeypatch: pytest.MonkeyPatch) -> None:
 
 def test_predict_requires_loaded_model(image: np.ndarray) -> None:
     """Predict before loading raises."""
-
     detector = YOLODetector(YOLODetectorConfig())
 
     with pytest.raises(ModelNotLoadedError):
@@ -214,7 +196,6 @@ def test_predict_returns_detection_result(
     image: np.ndarray,
 ) -> None:
     """Predict converts YOLO results into DetectionResult."""
-
     monkeypatch.setattr(yolo_detector_module, "YOLO", FakeYOLO)
 
     detector = YOLODetector(YOLODetectorConfig())
@@ -238,7 +219,6 @@ def test_predict_empty_results(
     image: np.ndarray,
 ) -> None:
     """Empty YOLO result list returns an empty DetectionResult."""
-
     monkeypatch.setattr(yolo_detector_module, "YOLO", EmptyYOLO)
 
     detector = YOLODetector(YOLODetectorConfig())
@@ -260,7 +240,6 @@ def test_predict_failure_raises_inference_error(
     image: np.ndarray,
 ) -> None:
     """Inference failures are wrapped in InferenceError."""
-
     monkeypatch.setattr(yolo_detector_module, "YOLO", FailingYOLO)
 
     detector = YOLODetector(YOLODetectorConfig())
@@ -272,7 +251,6 @@ def test_predict_failure_raises_inference_error(
 
 def test_close_unloads_model(monkeypatch: pytest.MonkeyPatch) -> None:
     """Close releases the model."""
-
     monkeypatch.setattr(yolo_detector_module, "YOLO", FakeYOLO)
 
     detector = YOLODetector(YOLODetectorConfig())
@@ -289,7 +267,6 @@ def test_context_manager_loads_and_closes(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """Context manager loads and closes the detector."""
-
     monkeypatch.setattr(yolo_detector_module, "YOLO", FakeYOLO)
 
     detector = YOLODetector(YOLODetectorConfig())
@@ -302,7 +279,6 @@ def test_context_manager_loads_and_closes(
 
 def test_prediction_kwargs() -> None:
     """Prediction kwargs should reflect configuration."""
-
     config = YOLODetectorConfig(
         confidence_threshold=0.5,
         iou_threshold=0.6,
