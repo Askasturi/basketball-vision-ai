@@ -43,7 +43,6 @@ class DetectorFactory:
         config: DetectorConfig,
     ) -> BaseDetector:
         """Create a detector instance."""
-
         try:
             constructor = cls._registry[detector_type]
         except KeyError as exc:
@@ -52,3 +51,16 @@ class DetectorFactory:
             ) from exc
 
         return constructor(config)
+
+
+def _register_default_detectors() -> None:
+    """Register built-in detector implementations."""
+    from basketball_vision.detection.yolo_detector import YOLODetector
+
+    DetectorFactory.register(
+        DetectorType.YOLO,
+        lambda config: YOLODetector(config),  # type: ignore[arg-type]
+    )
+
+
+_register_default_detectors()
