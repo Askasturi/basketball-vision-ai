@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
+import cv2
 import numpy as np
 
 from basketball_vision.visualization.colors import ColorPalette
@@ -35,7 +36,8 @@ class Renderer:
 
         if self.config.show_frame_index:
             frame_index = self._get_attr(
-                pipeline_frame_result, "frame_index", None)
+                pipeline_frame_result, "frame_index", None
+            )
             if frame_index is not None:
                 draw_frame_index(
                     frame=annotated,
@@ -71,6 +73,8 @@ class Renderer:
                     background_color=color,
                     config=self.config,
                 )
+
+        self._draw_analytics_overlay(annotated, pipeline_frame_result)
 
         return annotated
 
@@ -154,6 +158,109 @@ class Renderer:
             return ColorPalette.REFEREE.bgr
 
         return ColorPalette.UNKNOWN.bgr
+
+    def _draw_analytics_overlay(
+        self,
+        frame: np.ndarray,
+        pipeline_frame_result: object,
+    ) -> None:
+        analytics = self._get_attr(pipeline_frame_result, "analytics", None)
+        if analytics is None:
+            analytics = self._get_attr(
+                pipeline_frame_result,
+                "analytics_result",
+                None,
+            )
+
+        if analytics is None:
+            return
+
+        game = self._get_attr(analytics, "game", None)
+        if game is None:
+            return
+
+        frame_index = self._get_attr(
+            pipeline_frame_result, "frame_index", None)
+        players = self._get_attr(game, "number_of_players", 0)
+        team_counts = self._get_attr(game, "team_counts", {})
+        fps = self._extract_fps(game)
+
+        overlay_lines = [
+            f"Players: {players}",
+            *self._team_overlay_lines(team_counts),
+        ]
+
+        if frame_index is not None:
+            overlay_lines.append(f"Frame: {int(frame_index)}")
+
+        overlay_lines.append(f"FPS: {fps:g}")
+
+        self._draw_overlay_lines(frame=frame, lines=overlay_lines)
+
+    @staticmethod
+    def _team_overlay_lines(team_counts: object) -> list[str]:
+        if not isinstance(team_counts, dict):
+            return []
+
+        lines: list[str] = []
+        for team, count in sorted(team_counts.items()):
+            team_name = str(team).replace("_", " ").title()
+            lines.append(f"{team_name} Team: {count}")
+
+        return lines
+
+    @staticmethod
+    def _extract_fps(game: object) -> float:
+        total_frames = float(getattr(game, "total_frames", 0) or 0)
+        video_seconds = float(getattr(game, "video_seconds", 0.0) or 0.0)
+
+        if video_seconds <= 0:
+            return 0.0
+
+        return total_frames / video_seconds
+
+    def _draw_overlay_lines(self, frame: np.ndarray, lines: list[str]) -> None:
+        if not lines:
+            return
+
+        x = 10
+        y = 45 if self.config.show_frame_index else 20
+        line_height = 22
+        padding = 6
+        font = cv2.FONT_HERSHEY_SIMPLEX
+        scale = 0.55
+        thickness = 1
+
+        widths: list[int] = []
+        heights: list[int] = []
+
+        for line in lines:
+            size, _ = cv2.getTextSize(line, font, scale, thickness)
+            widths.append(size[0])
+            heights.append(size[1])
+
+        box_width = max(widths) + padding * 2
+        box_height = len(lines) * line_height + padding
+
+        cv2.rectangle(
+            frame,
+            (x - padding, y - 16),
+            (x + box_width, y + box_height - 12),
+            ColorPalette.UNKNOWN.bgr,
+            -1,
+        )
+
+        for index, line in enumerate(lines):
+            cv2.putText(
+                frame,
+                line,
+                (x, y + index * line_height),
+                font,
+                scale,
+                ColorPalette.TEXT.bgr,
+                thickness,
+                cv2.LINE_AA,
+            )
 
     @staticmethod
     def _get_attr(obj: object, name: str, default: Any) -> Any:
