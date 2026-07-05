@@ -48,3 +48,10 @@ logs/
 
 # Temporary files
 *.tmp
+# Local demo videos and model weights
+assets/demo_videos/*.mp4
+assets/demo_videos/*.mov
+assets/demo_videos/*.avi
+assets/demo_videos/*.mkv
+*.pt
+!assets/demo_videos/README.md
